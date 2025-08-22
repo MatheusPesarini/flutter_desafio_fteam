@@ -1,16 +1,46 @@
 # flutter_desafio_fteam
 
-A new Flutter project.
+Desafio Flutter para Fteam.
 
-## Getting Started
+## Preview
 
-This project is a starting point for a Flutter application.
+![Tela Inicial](public/screenshot.png)
 
-A few resources to get you started if this is your first Flutter project:
+![Detalhes do Personagem](public/screenshot_2.png)
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Requisitos
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- Flutter (stable) instalado e no PATH
+- Android Studio (SDK + emulador) para Android
+- Navegador Chrome para Web (opcional)
+
+Verifique seu ambiente:
+```sh
+flutter doctor
+```
+
+## Como rodar
+
+1. Instale dependências:
+```sh
+flutter pub get
+```
+
+2. Opções de dispositivo:
+- Inicie um emulador no Android Studio ou conecte um dispositivo físico
+- Ou liste dispositivos: `flutter devices`
+
+3. Execute o app:
+```sh
+flutter run
+```
+
+### Android
+```sh
+flutter run -d android
+```
+
+### Web (opcional)
+```sh
+flutter run -d chrome
+```

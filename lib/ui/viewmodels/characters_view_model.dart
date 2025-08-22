@@ -20,6 +20,11 @@ class CharactersViewModel extends ChangeNotifier {
   int _totalPages = 1;
   bool get hasMore => _page < _totalPages;
 
+  String _query = '';
+  String? _status; 
+  String get query => _query;
+  String? get status => _status;
+
   Future<void> loadInitial() async {
     if (_isLoading) return;
     _characters.clear();
@@ -38,12 +43,29 @@ class CharactersViewModel extends ChangeNotifier {
 
   Future<void> refresh() async => loadInitial();
 
+  void setQuery(String value) {
+    final v = value.trim();
+    if (_query == v) return;
+    _query = v;
+    loadInitial();
+  }
+
+  void setStatus(String? value) {
+    if (_status == value) return;
+    _status = value;
+    loadInitial();
+  }
+
   Future<void> _loadPage({bool append = false}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
     try {
-      final result = await _repo.fetchCharacters(page: _page);
+      final result = await _repo.fetchCharacters(
+        page: _page,
+        name: _query.isEmpty ? null : _query,
+        status: _status,
+      );
       _totalPages = result.totalPages;
       if (!append) {
         _characters

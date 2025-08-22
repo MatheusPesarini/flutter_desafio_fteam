@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_desafio_fteam/ui/views/character_detail_page.dart';
 import 'package:flutter_desafio_fteam/ui/widgets/character_card.dart';
 import 'package:flutter_desafio_fteam/ui/viewmodels/characters_view_model.dart';
+import 'dart:async';
 
 class CharactersPage extends StatelessWidget {
   const CharactersPage({super.key});
@@ -30,12 +31,20 @@ class _CharactersViewState extends State<_CharactersView> {
 
   static const double _maxCardWidth = 220;
 
+  Timer? _debounce;
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<CharactersViewModel>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Personagens')),
+      appBar: AppBar(toolbarHeight: 48, title: const Text('Personagens')),
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: vm.refresh,
@@ -69,8 +78,20 @@ class _CharactersViewState extends State<_CharactersView> {
                   return const Center(child: CircularProgressIndicator());
                 }
 
+                if (!vm.isLoading && vm.characters.isEmpty) {
+                  return ListView(
+                    padding: const EdgeInsets.all(12),
+                    children: const [
+                      _FiltersBar(),
+                      SizedBox(height: 48),
+                      Center(child: Text('Nenhum resultado')),
+                    ],
+                  );
+                }
+
                 return Column(
                   children: [
+                    const _FiltersBar(),
                     Expanded(
                       child: Scrollbar(
                         thumbVisibility: constraints.maxWidth >= 900,
@@ -114,6 +135,91 @@ class _CharactersViewState extends State<_CharactersView> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _FiltersBar extends StatefulWidget {
+  const _FiltersBar();
+
+  @override
+  State<_FiltersBar> createState() => _FiltersBarState();
+}
+
+class _FiltersBarState extends State<_FiltersBar> {
+  Timer? _debounce;
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    final vm = context.read<CharactersViewModel>();
+    _controller = TextEditingController(text: vm.query);
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final vm = context.watch<CharactersViewModel>();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+      child: Row(
+        children: [
+          Expanded(
+            child: SizedBox(
+              height: 48,
+              child: TextField(
+                controller: _controller,
+                decoration: InputDecoration(
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                  labelText: 'Buscar por nome',
+                  prefixIcon: const Icon(Icons.search, size: 20),
+                  suffixIcon: vm.query.isNotEmpty
+                      ? IconButton(
+                          tooltip: 'Limpar',
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            _controller.clear();
+                            vm.setQuery('');
+                          },
+                        )
+                      : null,
+                ),
+                onChanged: (text) {
+                  _debounce?.cancel();
+                  _debounce = Timer(const Duration(milliseconds: 400), () {
+                    vm.setQuery(text);
+                  });
+                },
+                textInputAction: TextInputAction.search,
+                onSubmitted: vm.setQuery,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          DropdownButton<String?>(
+            value: vm.status,
+            hint: const Text('Status'),
+            onChanged: vm.setStatus,
+            items: const [
+              DropdownMenuItem(value: null, child: Text('Todos')),
+              DropdownMenuItem(value: 'alive', child: Text('Vivos')),
+              DropdownMenuItem(value: 'dead', child: Text('Mortos')),
+              DropdownMenuItem(value: 'unknown', child: Text('Desconhecido')),
+            ],
+          ),
+        ],
       ),
     );
   }
